@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Pawsitive Rehab — AI-powered post-injury pet recovery planner. Analyze discharge notes, track medication, and monitor your pet's healing journey." />
+  <meta name="keywords" content="pet recovery, post-injury, AI veterinary, pet health, animal rehabilitation" />
+  <title>Pawsitive Rehab · AI Pet Recovery Planner</title>
+  <link rel="stylesheet" href="style.css" />
+
+  <!-- Favicon inline SVG -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐾</text></svg>" />
+</head>
+<body>
+
+  <!-- ╔═══════════════════════════════════════════╗ -->
+  <!-- ║     AUTH OVERLAY — Login / Signup         ║ -->
+  <!-- ╚═══════════════════════════════════════════╝ -->
+  <div id="login-overlay" role="dialog" aria-modal="true" aria-label="Care Portal Authentication">
+    <div class="login-card">
+
+      <div class="login-logo">
+        <div class="login-logo-icon logo-card-container" aria-hidden="true" style="padding: 6px;">
+          <svg class="pixel-icon" viewBox="0 0 16 16" width="22" height="22">
+            <rect x="5" y="8" width="6" height="4" fill="#f43f5e" />
+            <rect x="6" y="7" width="4" height="6" fill="#f43f5e" />
+            <rect x="2" y="5" width="2" height="2" fill="#3b82f6" />
+            <rect x="5" y="3" width="2" height="2" fill="#f59e0b" />
+            <rect x="9" y="3" width="2" height="2" fill="#f59e0b" />
+            <rect x="12" y="5" width="2" height="2" fill="#3b82f6" />
+          </svg>
+        </div>
+        <h1>
+          Pawsitive Rehab
+          <span>Care Portal</span>
+        </h1>
+      </div>
+
+      <p class="login-subtitle">
+        AI-Powered Post-Injury Recovery Planner &mdash; Powered by Google Gemma 4
+      </p>
+
+      <form id="login-form" novalidate>
+        <div class="form-group">
+          <label for="login-email">Care Provider Email</label>
+          <input
+            type="email"
+            id="login-email"
+            name="email"
+            placeholder="dr.smith@vetclinic.com"
+            autocomplete="email"
+            value="demo@pawsitiverehab.ai"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="login-password">Access Code / Password</label>
+          <input
+            type="password"
+            id="login-password"
+            name="password"
+            placeholder="••••••••••"
+            autocomplete="current-password"
+            value="demo1234"
+          />
+        </div>
+
+        <div style="display:flex; gap:12px; margin-top:12px;">
+          <button type="submit" id="enter-btn" class="login-btn" style="margin-top:0; flex:1;">
+            🚀 Enter Care Dashboard
+          </button>
+          <button type="button" id="login-load-state-btn" class="login-btn" style="margin-top:0; flex:1; background:var(--bg-card); border:2px solid var(--blue); color:var(--blue); box-shadow: 2px 2px 0px var(--blue); display:none;">
+            📂 Restore Session
+          </button>
+        </div>
+      </form>
+
+      <p class="login-footer">
+        New care team member?
+        <a id="signup-link" role="button" tabindex="0">Request Access →</a>
+      </p>
+
+    </div>
+  </div>
+
+
+  <!-- ╔═══════════════════════════════════════════╗ -->
+  <!-- ║          PRIMARY APP SHELL                ║ -->
+  <!-- ╚═══════════════════════════════════════════╝ -->
+  <div id="app-shell">
+
+    <!-- ── TOP NAVBAR ── -->
+    <nav id="navbar" role="navigation" aria-label="Application navigation">
+
+      <!-- Brand -->
+      <div class="nav-brand" id="nav-logo-brand" style="cursor:pointer;" role="button" tabindex="0" aria-label="Reset recovery dashboard">
+        <div class="nav-icon logo-card-container" aria-hidden="true">
+          <svg class="pixel-icon" viewBox="0 0 16 16" width="18" height="18">
+            <rect x="5" y="8" width="6" height="4" fill="#f43f5e" />
+            <rect x="6" y="7" width="4" height="6" fill="#f43f5e" />
+            <rect x="2" y="5" width="2" height="2" fill="#3b82f6" />
+            <rect x="5" y="3" width="2" height="2" fill="#f59e0b" />
+            <rect x="9" y="3" width="2" height="2" fill="#f59e0b" />
+            <rect x="12" y="5" width="2" height="2" fill="#3b82f6" />
+          </svg>
+        </div>
+        <div class="nav-title" style="display: flex; flex-direction: column;">
+          PAWSITIVE REHAB
+          <span class="nav-subtitle">⚡ POWERED BY GOOGLE Gemma 4 FLASH</span>
+        </div>
+      </div>
+
+      <!-- Controls -->
+      <div class="nav-controls">
+
+        <!-- Theme Toggle Button -->
+        <button id="theme-toggle-btn" class="retro-btn-square" aria-label="Toggle Theme"></button>
+
+        <!-- Audio Toggle Button -->
+        <button id="audio-toggle-btn" class="retro-btn-square" aria-label="Toggle Audio"></button>
+
+        <!-- User Badge -->
+        <div class="user-badge" id="user-badge-btn" aria-label="Logged in as Hadeed" title="Hadeed — Veterinary Care Specialist">
+          <div class="user-avatar" aria-hidden="true">HA</div>
+          <span class="user-name">Hadeed</span>
+          
+          <!-- Profile Dropdown -->
+          <div class="profile-dropdown" id="profile-dropdown-menu">
+            <button id="logout-btn" class="dropdown-item-btn" aria-label="Log out of Care Portal">
+              🚪 LOG OUT
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </nav>
+
+
+    <!-- ── MAIN CONTENT ── -->
+    <main id="main-content" role="main">
+
+      <!-- ── TOP ROW: LEFT + RIGHT PANELS ── -->
+      <section id="top-row" aria-label="Main control panels">
+
+        <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+             LEFT PANEL — VET NOTE INGESTION DECK
+             ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+        <div id="left-panel" role="region" aria-label="Vet note ingestion">
+
+          <!-- Card: Input -->
+          <div class="panel-card">
+            <div class="card-header">
+              <div class="card-header-icon icon-green" aria-hidden="true"><svg class="pixel-icon" viewBox="0 0 16 16" width="18" height="18" fill="currentColor"><path d="M4,2 h2 v1 h4 v-1 h2 v12 h-8 z M7,3 h2 v1 h-2 z" fill-rule="evenodd" /><rect x="6" y="6" width="4" height="1" /><rect x="6" y="8" width="4" height="1" /><rect x="6" y="10" width="4" height="1" /></svg></div>
+              <div>
+                <h2>Vet Note &amp; Daily Log Ingestion</h2>
+                <p>Paste discharge summaries or raw daily observations</p>
+              </div>
+            </div>
+
+            <!-- Textarea -->
+            <div>
+              <textarea
+                id="vet-notes-input"
+                class="ingestion-textarea"
+                placeholder="Paste chaotic vet discharge notes, wound care instructions, or daily observations here…
+
+Example: 'Buddy (5yr, Labrador) underwent ACL repair 3 days ago. Currently on Carprofen 75mg BID, Tramadol 50mg TID PRN. Owner reports mild swelling at incision site. Activity restricted: leash walks only 5min 3x/day. Follow-up in 10 days. Watch for excessive licking, discharge, or loss of appetite.'"
+                aria-label="Veterinary notes and daily log input"
+                maxlength="5000"
+              ></textarea>
+              <div class="char-counter">
+                <span id="char-count">0</span> / 5000 characters
+              </div>
+            </div>
+
+            <!-- Preset Pills -->
+            <div>
+              <p class="preset-label">⚡ Quick Load Presets</p>
+              <div class="preset-pills" role="group" aria-label="Quick-load note presets">
+
+                <button
+                  class="pill-btn"
+                  id="preset-splint"
+                  aria-label="Load post-op splint care preset"
+                  data-preset="splint"
+                >
+                  🦴 Post-Op Splint Care
+                </button>
+
+                <button
+                  class="pill-btn"
+                  id="preset-wound"
+                  aria-label="Load wound monitoring log preset"
+                  data-preset="wound"
+                >
+                  🩹 Wound Monitoring Log
+                </button>
+
+                <button
+                  class="pill-btn"
+                  id="preset-neuro"
+                  aria-label="Load neuro recovery protocol preset"
+                  data-preset="neuro"
+                >
+                  🧠 Neuro Recovery Protocol
+                </button>
+
+              </div>
+            </div>
+
+            <!-- Analyze CTA -->
+            <button
+              id="analyze-btn"
+              class="analyze-btn"
+              aria-label="Analyze recovery metrics using Google Gemma 4 AI"
+            >
+              <div class="btn-spinner" aria-hidden="true"></div>
+              <span class="btn-text-idle">⚡ Analyze Recovery Metrics</span>
+              <span class="btn-text-loading" style="display:none;">🤖 Gemma 4 Processing…</span>
+            </button>
+
+          </div><!-- /panel-card -->
+
+          <!-- Card: Session Info -->
+          <div class="panel-card">
+            <div class="card-header">
+              <div class="card-header-icon icon-blue" aria-hidden="true"><svg class="pixel-icon" viewBox="0 0 16 16" width="18" height="18" fill="currentColor"><rect x="3" y="13" width="10" height="2" /><rect x="10" y="7" width="2" height="6" /><rect x="8" y="5" width="4" height="2" /><rect x="5" y="3" width="2" height="5" /><rect x="4" y="2" width="4" height="1" /><rect x="4" y="9" width="4" height="1" /></svg></div>
+              <div>
+                <h2>Active Session</h2>
+                <p>Current analysis context</p>
+              </div>
+            </div>
+
+            <div style="display:flex; flex-direction:column; gap:10px;">
+
+              <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.8rem;">
+                <span class="text-muted">Pet Name</span>
+                <span style="font-weight:600; color:var(--text-primary);" id="session-patient">—</span>
+              </div>
+              <div class="divider"></div>
+
+              <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.8rem;">
+                <span class="text-muted">Account / Carer Identity</span>
+                <span style="font-weight:600; color:var(--text-primary);" id="session-carer">Hadeed</span>
+              </div>
+              <div class="divider"></div>
+
+              <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.8rem;">
+                <span class="text-muted">Analyses Run</span>
+                <span style="font-weight:700; color:var(--text-primary);" id="analyses-count">0</span>
+              </div>
+
+            </div>
+          </div><!-- /session card -->
+
+          <!-- Card: Recovery Task Completion -->
+          <div class="panel-card" id="recovery-completion-card">
+            <div class="card-header">
+              <div class="card-header-icon icon-purple" aria-hidden="true">
+                <svg class="pixel-icon" viewBox="0 0 16 16" width="18" height="18" fill="currentColor">
+                  <path d="M2,2 h12 v12 h-12 z M3,3 v10 h10 v-10 z" fill-rule="evenodd" />
+                  <rect x="5" y="7" width="2" height="4" />
+                  <rect x="7" y="9" width="4" height="2" />
+                </svg>
+              </div>
+              <div>
+                <h2>Recovery Task Completion</h2>
+                <p>Interactive metric trackers</p>
+              </div>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:10px;">
+              <div style="display:flex; justify-content:space-between; font-size:0.8rem; font-weight:700;">
+                <span class="preset-label" style="margin:0;">PROGRESS</span>
+                <span id="completion-percentage" class="font-mono" style="color:var(--green);">0%</span>
+              </div>
+              <!-- Flat Blocky Progress Bar -->
+              <div class="progress-bar-container">
+                <div class="progress-bar-fill" id="progress-bar-fill" style="width: 0%;"></div>
+              </div>
+              <div style="font-size:0.75rem; color:var(--text-secondary); line-height:1.4;" id="completion-subtext">
+                0 of 0 recovery tasks completed.
+              </div>
+            </div>
+          </div><!-- /recovery card -->
+
+          <!-- Card: LocalStorage Data Vault -->
+          <div class="panel-card" id="data-vault-card">
+            <div class="card-header">
+              <div class="card-header-icon icon-blue" aria-hidden="true">
+                <svg class="pixel-icon" viewBox="0 0 16 16" width="18" height="18">
+                  <path d="M2,2 h9 l3,3 v9 h-12 z M3,3 v10 h10 v-10 h-10 z" fill="#3b82f6" />
+                  <rect x="5" y="3" width="6" height="3" fill="#3b82f6" />
+                  <rect x="5" y="8" width="6" height="5" fill="#3b82f6" />
+                </svg>
+              </div>
+              <div>
+                <h2>LocalStorage Vault</h2>
+                <p>Floppy disk backup configuration</p>
+              </div>
+            </div>
+            <div style="display:flex; gap:12px;">
+              <button id="save-state-btn" class="pill-btn" style="flex:1; justify-content:center;" aria-label="Save current state to local storage">
+                💾 SAVE STATE
+              </button>
+              <button id="load-state-btn" class="pill-btn" style="flex:1; justify-content:center;" aria-label="Load state from local storage">
+                📂 LOAD STATE
+              </button>
+            </div>
+          </div><!-- /vault card -->
+
+        </div><!-- /left-panel -->
+
+
+        <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+             RIGHT PANEL — DYNAMIC RECOVERY MONITOR
+             ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+        <div id="right-panel" role="region" aria-label="Recovery monitoring dashboard">
+
+          <!-- Card: Main Monitor -->
+          <div class="panel-card" style="flex:1;">
+
+            <div class="card-header" style="display:flex; justify-content:space-between; align-items:center; width:100%;">
+              <div style="display:flex; align-items:center; gap:12px;">
+                <div class="card-header-icon icon-green" aria-hidden="true"><svg class="pixel-icon" viewBox="0 0 16 16" width="18" height="18" fill="currentColor"><path d="M2,2 h12 v12 h-12 z M3,3 v10 h10 v-10 z" fill-rule="evenodd" /><path d="M7,5 h2 v2 h-2 v-2 h-2 v-2 h-2 z" fill="var(--green)" /></svg></div>
+                <div>
+                  <h2>Dynamic Recovery Monitor</h2>
+                  <p>Structured AI extraction from your vet notes</p>
+                </div>
+              </div>
+              <button id="lang-toggle-btn" class="pill-btn" aria-label="Toggle Recovery Language" style="font-family:'Silkscreen'; font-size:0.7rem;">
+                🌐 LANG: ENGLISH
+              </button>
+            </div>
+
+            <!-- Patient Status Indicator -->
+            <div id="patient-status-bar" class="patient-status-bar" role="status" aria-live="polite" aria-label="Patient status indicator">
+              <div class="status-badge normal" id="status-badge-el">
+                <div class="dot" aria-hidden="true"></div>
+                <span id="status-label-text">Awaiting Input</span>
+              </div>
+              <div class="status-description">
+                <strong id="status-heading">No analysis run yet.</strong>
+                <span id="status-detail"> Load a vet note and click Analyze.</span>
+              </div>
+            </div>
+
+            <!-- Skeleton Loader (hidden by default) -->
+            <div id="skeleton-loader" aria-label="Loading analysis" aria-live="polite">
+              <div class="skeleton-bar large full"></div>
+              <div class="skeleton-bar medium" style="margin-top:4px;"></div>
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:4px;">
+                <div style="display:flex;flex-direction:column;gap:6px; background:var(--bg-input); border-radius:var(--radius-md); padding:16px;">
+                  <div class="skeleton-bar short"></div>
+                  <div class="skeleton-bar full"></div>
+                  <div class="skeleton-bar medium"></div>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:6px; background:var(--bg-input); border-radius:var(--radius-md); padding:16px;">
+                  <div class="skeleton-bar short"></div>
+                  <div class="skeleton-bar full"></div>
+                  <div class="skeleton-bar medium"></div>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:6px; background:var(--bg-input); border-radius:var(--radius-md); padding:16px;">
+                  <div class="skeleton-bar short"></div>
+                  <div class="skeleton-bar full"></div>
+                  <div class="skeleton-bar medium"></div>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:6px; background:var(--bg-input); border-radius:var(--radius-md); padding:16px;">
+                  <div class="skeleton-bar short"></div>
+                  <div class="skeleton-bar full"></div>
+                  <div class="skeleton-bar medium"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Output Cards Grid -->
+            <div id="output-grid-wrapper">
+              <div class="output-grid" id="output-cards-grid">
+
+                <!-- Medication Card -->
+                <div class="output-card" id="card-medication" aria-label="Medication schedule">
+                  <div class="output-card-header">
+                    <svg class="pixel-icon" viewBox="0 0 16 16" width="18" height="18">
+                      <path d="M2,6 v4 h6 v-4 z" fill="#f43f5e" />
+                      <rect x="3" y="4" width="5" height="2" fill="#f43f5e" />
+                      <rect x="3" y="10" width="5" height="2" fill="#f43f5e" />
+                      <path d="M8,6 v4 h6 v-4 z" fill="#e8edf5" />
+                      <rect x="8" y="4" width="5" height="2" fill="#e8edf5" />
+                      <rect x="8" y="10" width="5" height="2" fill="#e8edf5" />
+                      <path d="M3,3 h10 v1 h-10 z M2,4 h1 v2 h-1 z M13,4 h1 v2 h-1 z M1,6 h1 v4 h-1 z M14,6 h1 v4 h-1 z M2,10 h1 v2 h-1 z M13,10 h1 v2 h-1 z M3,12 h10 v1 h-10 z" fill="#0a0e17" />
+                    </svg>
+                    <div class="output-card-title">Medication Schedule</div>
+                  </div>
+                  <div class="output-card-body" id="medication-body">
+                    <div class="empty-state">
+                      <div class="empty-state-icon" style="opacity: 0.5;">
+                        <svg class="pixel-icon" viewBox="0 0 16 16" width="32" height="32">
+                          <path d="M2,6 v4 h6 v-4 z" fill="#f43f5e" />
+                          <rect x="3" y="4" width="5" height="2" fill="#f43f5e" />
+                          <rect x="3" y="10" width="5" height="2" fill="#f43f5e" />
+                          <path d="M8,6 v4 h6 v-4 z" fill="#e8edf5" />
+                          <rect x="8" y="4" width="5" height="2" fill="#e8edf5" />
+                          <rect x="8" y="10" width="5" height="2" fill="#e8edf5" />
+                          <path d="M3,3 h10 v1 h-10 z M2,4 h1 v2 h-1 z M13,4 h1 v2 h-1 z M1,6 h1 v4 h-1 z M14,6 h1 v4 h-1 z M2,10 h1 v2 h-1 z M13,10 h1 v2 h-1 z M3,12 h10 v1 h-10 z" fill="#0a0e17" />
+                        </svg>
+                      </div>
+                      <div class="empty-state-title">No data yet</div>
+                      <div class="empty-state-sub">Run an analysis to populate</div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Activity Card -->
+                <div class="output-card" id="card-activity" aria-label="Activity restrictions">
+                  <div class="output-card-header">
+                    <svg class="pixel-icon" viewBox="0 0 16 16" width="18" height="18">
+                      <path d="M7,2 h2 v2 h-2 z M6,4 h4 v4 h-4 z M5,8 h6 v4 h-6 z" fill="#f59e0b" />
+                      <rect x="6" y="5" width="4" height="2" fill="#ffffff" />
+                      <rect x="5" y="9" width="6" height="2" fill="#ffffff" />
+                      <rect x="3" y="12" width="10" height="2" fill="#0a0e17" />
+                    </svg>
+                    <div class="output-card-title">Activity Restrictions</div>
+                  </div>
+                  <div class="output-card-body" id="activity-body">
+                    <div class="empty-state">
+                      <div class="empty-state-icon" style="opacity: 0.5;">
+                        <svg class="pixel-icon" viewBox="0 0 16 16" width="32" height="32">
+                          <path d="M7,2 h2 v2 h-2 z M6,4 h4 v4 h-4 z M5,8 h6 v4 h-6 z" fill="#f59e0b" />
+                          <rect x="6" y="5" width="4" height="2" fill="#ffffff" />
+                          <rect x="5" y="9" width="6" height="2" fill="#ffffff" />
+                          <rect x="3" y="12" width="10" height="2" fill="#0a0e17" />
+                        </svg>
+                      </div>
+                      <div class="empty-state-title">No data yet</div>
+                      <div class="empty-state-sub">Run an analysis to populate</div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Dietary Card -->
+                <div class="output-card" id="card-dietary" aria-label="Dietary directives">
+                  <div class="output-card-header">
+                    <svg class="pixel-icon" viewBox="0 0 16 16" width="18" height="18">
+                      <rect x="4" y="4" width="3" height="3" fill="#10b981" />
+                      <rect x="9" y="4" width="3" height="3" fill="#10b981" />
+                      <rect x="6" y="3" width="4" height="3" fill="#10b981" />
+                      <rect x="5" y="5" width="2" height="2" fill="#f59e0b" />
+                      <path d="M2,7 h12 v3 h-2 v3 h-8 v-3 h-2 z" fill="#3b82f6" />
+                      <rect x="1" y="6" width="14" height="1" fill="#0a0e17" />
+                    </svg>
+                    <div class="output-card-title">Dietary Directives</div>
+                  </div>
+                  <div class="output-card-body" id="dietary-body">
+                    <div class="empty-state">
+                      <div class="empty-state-icon" style="opacity: 0.5;">
+                        <svg class="pixel-icon" viewBox="0 0 16 16" width="32" height="32">
+                          <rect x="4" y="4" width="3" height="3" fill="#10b981" />
+                          <rect x="9" y="4" width="3" height="3" fill="#10b981" />
+                          <rect x="6" y="3" width="4" height="3" fill="#10b981" />
+                          <rect x="5" y="5" width="2" height="2" fill="#f59e0b" />
+                          <path d="M2,7 h12 v3 h-2 v3 h-8 v-3 h-2 z" fill="#3b82f6" />
+                          <rect x="1" y="6" width="14" height="1" fill="#0a0e17" />
+                        </svg>
+                      </div>
+                      <div class="empty-state-title">No data yet</div>
+                      <div class="empty-state-sub">Run an analysis to populate</div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Follow-up Card -->
+                <div class="output-card" id="card-followup" aria-label="Follow-up schedule">
+                  <div class="output-card-header">
+                    <svg class="pixel-icon" viewBox="0 0 16 16" width="18" height="18">
+                      <rect x="2" y="2" width="12" height="3" fill="#ef4444" />
+                      <rect x="2" y="5" width="12" height="9" fill="#ffffff" />
+                      <rect x="5" y="8" width="6" height="4" fill="#3b82f6" />
+                      <rect x="4" y="0" width="2" height="3" fill="#8b95a8" />
+                      <rect x="10" y="0" width="2" height="3" fill="#8b95a8" />
+                      <path d="M2,1 h12 v1 h-12 z M1,2 h1 v12 h-1 z M14,2 h1 v12 h-1 z M2,14 h12 v1 h-12 z" fill="#0a0e17" />
+                    </svg>
+                    <div class="output-card-title">Follow-up Timeline</div>
+                  </div>
+                  <div class="output-card-body" id="followup-body">
+                    <div class="empty-state">
+                      <div class="empty-state-icon" style="opacity: 0.5;">
+                        <svg class="pixel-icon" viewBox="0 0 16 16" width="32" height="32">
+                          <rect x="2" y="2" width="12" height="3" fill="#ef4444" />
+                          <rect x="2" y="5" width="12" height="9" fill="#ffffff" />
+                          <rect x="5" y="8" width="6" height="4" fill="#3b82f6" />
+                          <rect x="4" y="0" width="2" height="3" fill="#8b95a8" />
+                          <rect x="10" y="0" width="2" height="3" fill="#8b95a8" />
+                          <path d="M2,1 h12 v1 h-12 z M1,2 h1 v12 h-1 z M14,2 h1 v12 h-1 z M2,14 h12 v1 h-12 z" fill="#0a0e17" />
+                        </svg>
+                      </div>
+                      <div class="empty-state-title">No data yet</div>
+                      <div class="empty-state-sub">Run an analysis to populate</div>
+                    </div>
+                  </div>
+                </div>
+
+              </div><!-- /output-grid -->
+            </div>
+
+          </div><!-- /panel-card -->
+
+          <!-- Card: Red Flag Monitor -->
+          <div class="panel-card" style="padding:0; overflow:hidden; border-color:var(--border-urgent);">
+            <div class="red-flag-widget">
+              <div class="red-flag-header">
+                <div class="red-flag-icon" aria-hidden="true">
+                  <svg class="pixel-icon" viewBox="0 0 16 16" width="24" height="24">
+                    <rect x="2" y="12" width="12" height="2" fill="#8b95a8" />
+                    <path d="M4,6 h8 v6 h-8 z" fill="#ef4444" />
+                    <path d="M5,4 h6 v2 h-6 z" fill="#ef4444" />
+                    <rect x="7" y="7" width="2" height="4" fill="#f59e0b" />
+                  </svg>
+                </div>
+                <h3>Red Flag Monitor — Complication Risks</h3>
+              </div>
+              <ul class="flag-list" id="red-flag-list" aria-label="Detected complication risk indicators" aria-live="polite">
+                <li class="flag-item">
+                  <div class="flag-placeholder" aria-live="polite">
+                    🔍 No alerts detected. Analyzing notes will surface risk signals here.
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+        </div><!-- /right-panel -->
+
+      </section><!-- /top-row -->
+
+
+      <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+           BOTTOM ROW — AI REASONING ENGINE TRACE
+           ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+      <section id="bottom-row" aria-label="AI reasoning trace terminal">
+        <div id="reasoning-panel">
+
+          <div class="terminal-header">
+            <div class="terminal-dots" aria-hidden="true">
+              <span></span><span></span><span></span>
+            </div>
+            <div class="terminal-title">
+              Google Gemma 4 Live Extraction &amp; Reasoning Trace
+            </div>
+            <div class="terminal-badge">
+              <div class="status-dot" style="width:6px;height:6px;" aria-hidden="true"></div>
+              Live Stream
+            </div>
+          </div>
+
+          <div
+            class="terminal-body"
+            id="terminal-log"
+            role="log"
+            aria-label="AI reasoning output terminal"
+            aria-live="polite"
+          >
+            <!-- Lines injected by JS -->
+          </div>
+
+        </div>
+      </section><!-- /bottom-row -->
+
+    </main><!-- /main-content -->
+  </div><!-- /app-shell -->
+
+
+  <!-- Toast Container -->
+  <div id="toast-container" aria-live="assertive" aria-atomic="true" role="status"></div>
+
+  <!-- Scripts -->
+  <script src="script.js"></script>
+</body>
+</html>
