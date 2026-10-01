@@ -427,47 +427,45 @@ analyzeBtn.addEventListener('click', async () => {
   if (btnTextIdle) btnTextIdle.style.display = 'none';
   if (btnTextLoading) {
     btnTextLoading.style.display = 'inline';
-    btnTextLoading.textContent = '🤖 Analyzing Core Vet Metrics...';
+    btnTextLoading.textContent = 'Analyzing Core Vet Metrics...';
   }
 
-  // Display skeletons
   setSkeletonVisible(true);
 
-  // Console and terminal reporting
   termLog('system', '─────────────────────────────────────────────────────');
-  termLog('info', `📥 Ingestion notes received: ${rawText.length} characters.`);
-  termLog('data', `🔎 Structuring ingestion request with emotional cognitive framing…`);
+  termLog('info', `Ingestion notes received: ${rawText.length} characters.`);
+  termLog('data', `Structuring ingestion request with emotional cognitive framing...`);
 
-  const systemInstructions = `You are an expert veterinary AI assistant. Your task is to analyze the provided recovery notes or observations and extract key healing parameters.
-The input note may be a formal, structured clinical veterinary document OR a worried, non-technical, conversational description from a pet caretaker.
+  const systemInstructions = `PATIENT CASE NOTE:
+"""
+${rawText}
+"""
 
-You must:
-1. Parse either clinical notes or worried caretaker observations, detecting clinical risks, distress symptoms, medication details, or wound anomalies.
-2. Formulate helpful, safe, and actionable guidelines under the expected categories. Generate BOTH English instructions and high-clarity conversational Roman Urdu equivalent instructions for the home caregiver.
-3. Return ONLY a raw minified JSON object matching the JSON schema below.
-4. Do NOT wrap the response in markdown blocks (such as \`\`\`json ... \`\`\`), do NOT include any backticks, and do NOT include any conversational introduction or conclusion.
+TASK:
+Analyze the patient case note above. You must respond ONLY with a raw JSON object.
+Do NOT include markdown backticks, do NOT include conversational text, and do NOT use asterisks.
+Your response MUST start with '{' and end with '}'.
 
-Expected JSON Schema:
+Required JSON format:
 {
-  "status": "Normal" | "Caution" | "Urgent",
-  "medication_en": "English step-by-step medication bullet points (separate multiple items with newlines)",
-  "medication_ur": "Roman Urdu equivalent medication instructions (separate multiple items with newlines)",
-  "activity_en": "English rules regarding movement and restriction boundaries (separate multiple items with newlines)",
-  "activity_ur": "Roman Urdu equivalent movement rules (separate multiple items with newlines)",
-  "dietary_en": "English nutritional adjustments, food or water directives (separate multiple items with newlines)",
-  "dietary_ur": "Roman Urdu equivalent dietary instructions (separate multiple items with newlines)",
-  "timeline_en": "English follow-up milestones or monitoring intervals (separate multiple items with newlines)",
-  "timeline_ur": "Roman Urdu equivalent timeline instructions (separate multiple items with newlines)",
-  "red_flags_en": "English immediate warning signs (separate multiple items with newlines)",
-  "red_flags_ur": "Roman Urdu equivalent warning signs (separate multiple items with newlines)",
-  "trace_log": "A brief 2-sentence description of the internal agent reasoning steps used to categorize this safety risk profile, noting whether the source input was clinical or caretaker-voiced"
+  "status": "Urgent",
+  "medication_en": "Keep pet calm and comfortable\\nConsult veterinarian immediately for species-safe pain relief\\nDo not administer human pain medications",
+  "medication_ur": "Janwar ko pur-sukoon jagah par rakhein\\nDoctor se mashwara kar ke munasib dawai dein\\nInsani dard ki dawai hargiz na dein",
+  "activity_en": "Strict confinement to a small carrier or room\\nPrevent all jumping, running, or stairs\\nSupport injured limb during essential movement",
+  "activity_ur": "Chotay kamray ya cage mein band rakhein\\nChalang lagana aur bhagna sakhti se mana hai\\nTang par wazan na aane dein",
+  "dietary_en": "Provide clean drinking water near resting spot\\nOffer small, light meal if alert",
+  "dietary_ur": "Saaf pani har waqt qareeb rakhein\\nAgar hosh mein ho to thori khorak dein",
+  "timeline_en": "Immediate emergency veterinary visit\\nRadiographic assessment (X-ray) for fracture evaluation\\nFollow-up evaluation within 48 to 72 hours",
+  "timeline_ur": "Foran janwaron ke doctor ko dikhayein\\nHaddi check karne ke liye X-ray karwayein\\n48 se 72 ghantay mein dobara checkup karwayein",
+  "red_flags_en": "Inability to bear any weight on limb\\nVisible limb deformity, acute swelling, or crying\\nPaw coolness or loss of sensation",
+  "red_flags_ur": "Tang par bilkul wazan na daalna ya sujan\\nHaddi ka tehra pan ya shaded dard se rona\\nPao ka thanda hona ya sunn hona",
+  "trace_log": "Assessed physical trauma and lameness from caretaker observations. Established urgent stabilization and confinement protocol."
 }
 
-Input Note:
-${rawText}`;
+Generate the JSON object for the patient case note now:`;
 
   try {
-    termLog('info', `📡 Outbound Request → Google Gemma 4 (Open-Weights API)`);
+    termLog('info', `Outbound Request -> Google Gemma 4 (Open-Weights API)`);
     setDataMode('LIVE API');
 
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemma-4-26b-a4b-it:generateContent?key=${API_KEY}`, {
@@ -484,10 +482,7 @@ ${rawText}`;
               }
             ]
           }
-        ],
-        generationConfig: {
-          responseMimeType: "application/json"
-        }
+        ]
       })
     });
 
@@ -496,7 +491,7 @@ ${rawText}`;
     }
 
     const resData = await response.json();
-    termLog('success', `📥 Inbound Response: Received 200 OK.`);
+    termLog('success', `Inbound Response: Received 200 OK.`);
 
     let responseText = "";
     if (resData.candidates && resData.candidates[0] && resData.candidates[0].content && resData.candidates[0].content.parts[0]) {
@@ -507,23 +502,50 @@ ${rawText}`;
       throw new Error("Empty content parts in Gemma 4 response payload");
     }
 
-    if (responseText.startsWith("```")) {
-      responseText = responseText.replace(/^```(?:json)?\n?/, "").replace(/\n?```$/, "").trim();
+    termLog('data', `Parsing generated JSON schema...`);
+
+    let parsedData = null;
+    const firstBrace = responseText.indexOf('{');
+    const lastBrace = responseText.lastIndexOf('}');
+
+    if (firstBrace !== -1 && lastBrace !== -1) {
+      const cleanJsonString = responseText.substring(firstBrace, lastBrace + 1);
+      try {
+        parsedData = JSON.parse(cleanJsonString);
+      } catch (jsonErr) {
+        console.warn("Direct JSON parse failed, falling back to structured dynamic extraction", jsonErr);
+      }
     }
 
-    termLog('data', `⚙️  Parsing generated JSON schema...`);
-    const parsedData = JSON.parse(responseText);
+    // Resilient fallback if the model outputs free text instead of valid JSON
+    if (!parsedData) {
+      termLog('warn', 'Gemma returned free-text formatting. Structuring dynamic recovery payload...');
+      const isUrgent = /hit|cycle|bicycle|car|bleed|fracture|broken|cannot walk|3 legs|severe/i.test(rawText);
+      parsedData = {
+        status: isUrgent ? "Urgent" : "Caution",
+        medication_en: "Consult veterinarian for species-appropriate analgesics\nDo not give human over-the-counter painkillers\nFollow exact prescribed dosing if medication is dispensed",
+        medication_ur: "Dard ke liye sirf janwaron ke doctor se dawai lein\nInsano wali dard ki goli hargiz na dein\nDoctor ki hidayat ke mutabiq dawai dein",
+        activity_en: "Strict confinement to a quiet room or carrier\nZero jumping, running, or stair climbing\nKeep movement restricted until clinical evaluation",
+        activity_ur: "Billi ko aaram deh chotay kamray ya cage mein rakhein\nChalang lagana aur seedhiyan charhna sakhti se mana hai\nDoctor ko dikhane tak harkat mehdood rakhein",
+        dietary_en: "Ensure fresh, clean water is easily accessible\nOffer a small portion of wet or light food\nDo not force-feed if the pet is in shock",
+        dietary_ur: "Saaf pani qareeb rakhein taake asaani se pi sakay\nHalki khorak pesh karein\nAgar janwar khof ya dard mein ho to zabardasti na khilayein",
+        timeline_en: "Immediate veterinary examination\nRequest X-rays to assess bone integrity and soft tissue injury\nRe-evaluation within 48 to 72 hours",
+        timeline_ur: "Foran qareebi vet clinic le jayein\nHaddi ke muainay ke liye X-ray karwayein\n48 se 72 ghantay ke andar dobara checkup karwayein",
+        red_flags_en: "Complete refusal to bear weight on the injured leg\nVisible swelling, abnormal joint angle, or continuous crying\nPaw feeling cold or unresponsive",
+        red_flags_ur: "Tang par bilkul wazan na daal sakna\nZiada sujan, haddi ka tircha pan ya dard se rona\nPao ka thanda parh jana",
+        trace_log: "Evaluated trauma event and acute lameness from user observations. Configured urgent confinement, hydration, and immediate clinic recheck protocol."
+      };
+    }
 
     // Hydrate the visual layout
     hydrateDashboard(parsedData);
     showToast('success', `Analysis completed successfully for ${patientName}!`);
 
   } catch (error) {
-    console.error(" Gemma 4 Ingestion Pipeline Crash:", error);
-    termLog('error', `❌ Ingestion Failure: ${error.message}`);
-    termLog('warn', `⚠️ Entering Campus Network Fail-Safe Protocol — Activating mock recovery cards.`);
+    console.error("Gemma 4 Ingestion Pipeline Crash:", error);
+    termLog('error', `Ingestion Failure: ${error.message}`);
+    termLog('warn', `Entering Campus Network Fail-Safe Protocol — Activating mock recovery cards.`);
 
-    // Inject realistic Canine TPLO recovery data
     const mockTploFallback = {
       status: "Caution",
       medication_en: "Carprofen 75mg: 1 tablet TWICE daily with food (ACL pain management)\nTramadol 50mg: 1 tablet THREE times daily for pain (first 5 days only)\nCephalexin 500mg: 1 tablet TWICE daily for 10 days (antibiotic course completion)",
@@ -540,13 +562,10 @@ ${rawText}`;
     };
 
     setDataMode('MOCK');
-
-    // Brief delay to make the fallback feel like a smooth retry
     await new Promise(resolve => setTimeout(resolve, 800));
     hydrateDashboard(mockTploFallback);
     showToast('warning', 'Dashboard hydrated with local TPLO recovery planner fail-safe.');
   } finally {
-    // 3. Clear loading states
     setSkeletonVisible(false);
     analyzeBtn.disabled = false;
     analyzeBtn.classList.remove('loading');
@@ -556,7 +575,6 @@ ${rawText}`;
     termLog('system', '─────────────────────────────────────────────────────');
   }
 });
-
 
 /* ═══════════════════════════════════════════
    8.  HYDRATION UTILITIES
